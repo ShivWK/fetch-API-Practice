@@ -1,5 +1,7 @@
 localStorage.setItem("token", "bearer abc123");
 
+const BASE_URL = "http://localhost:3000";
+
 export const onSubmit = async (data) => {
   const formData = new FormData();
 
@@ -16,10 +18,12 @@ export const onSubmit = async (data) => {
   }
 
   try {
-    let response = await fetch("/api/formData", {
+    let response = await fetch(`${BASE_URL}/api/formData`, {
       method: "POST",
       body: formData, // We dont need to set header "Content-Type" explicitly it will be automatically set bu the fetch sice we have given FormData instance.
     });
+    if (!response.ok) throw new Error(response.statusText);
+
     let data = await response.json();
     console.log(data);
   } catch (err) {
@@ -29,7 +33,9 @@ export const onSubmit = async (data) => {
 
 export const handleGetData = async () => {
   try {
-    let response = await fetch("/api/v1/movies");
+    let response = await fetch(`${BASE_URL}/api/v1/movies`);
+    if (!response.ok) throw new Error(response.statusText);
+
     let data = await response.json();
     console.log(data);
   } catch (err) {
@@ -39,8 +45,11 @@ export const handleGetData = async () => {
 
 export const handleGetByIdData = async (id) => {
   try {
-    let response = await fetch(`/api/v1/movies/${id}`);
-    console.log(response);
+    let response = await fetch(`${BASE_URL}/api/v1/movies/${id}`);
+    if (!response.ok) throw new Error(response.statusText);
+
+    const data = await response.json();
+    console.log(data);
   } catch (err) {
     console.error(err.message);
   }
@@ -48,7 +57,7 @@ export const handleGetByIdData = async (id) => {
 
 export const handleUpdatePutData = async (id) => {
   try {
-    let response = await fetch(`/api/v1/movies/${id}`, {
+    let response = await fetch(`${BASE_URL}/api/v1/movies/${id}`, {
       method: "PUT",
       body: JSON.stringify({
         name: "New Film Star",
@@ -59,7 +68,10 @@ export const handleUpdatePutData = async (id) => {
         "Content-Type": "application/json",
       },
     });
-    console.log(response);
+    if (!response.ok) throw new Error(response.statusText);
+
+    const data = await response.json();
+    console.log(data);
   } catch (err) {
     console.error(err.message);
   }
@@ -67,13 +79,15 @@ export const handleUpdatePutData = async (id) => {
 
 export const handleUpdatePatchtData = async (id) => {
   try {
-    let response = await fetch(`/api/v1/movies/${id}`, {
+    let response = await fetch(`${BASE_URL}/api/v1/movies/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ name: "New Flim Star" }),
       headers: {
         "Content-Type": "application/json",
       },
     });
+    if (!response.ok) throw new Error(response.statusText);
+
     let data = await response.json();
     console.log(data);
   } catch (err) {
@@ -83,11 +97,15 @@ export const handleUpdatePatchtData = async (id) => {
 
 export const handleDeleteData = async (id) => {
   try {
-    let response = await fetcg(`/api/v1/movies/${id}`, {
+    let response = await fetch(`${BASE_URL}/api/v1/movies/${id}`, {
       method: "DELETE",
     });
-    let data = await response.json();
-    console.log(data);
+    if (!response.ok) throw new Error(response.statusText);
+
+    if (response.status !== 204) {
+      let data = await response.json();
+      console.log(data);
+    }
   } catch (err) {
     console.error(err.message);
   }
@@ -97,11 +115,12 @@ const controller = new AbortController();
 
 export const handleWaitApi = async () => {
   try {
-    let response = await fetch("/api/waitBaby", {
+    let response = await fetch(`${BASE_URL}/api/waitBaby`, {
       method: "GET",
       signal: controller.signal,
     });
-    alert(response.data.message);
+    const data = await response.json();
+    alert(data.message);
   } catch (err) {}
 };
 
@@ -116,9 +135,10 @@ const delay = () =>
 
 export const handleUnstableApi = async (retry = 3) => {
   try {
-    const response = await fetch("/api/unstable-endpoint");
+    const response = await fetch(`${BASE_URL}/api/unstable-endpoint`);
+    if (!response.ok) throw new Error(response.statusText);
     const data = await response.json();
-    console.log(data.message);
+    console.log(data);
   } catch (err) {
     if (retry > 0) {
       await delay();
@@ -129,3 +149,23 @@ export const handleUnstableApi = async (retry = 3) => {
     throw err;
   }
 };
+
+// timeout work around
+
+export const handleWaitApi2 = async () => {
+    const controller = new AbortController();
+    const timer =setTimeout(controller.abort, 4000);
+
+  try {
+    let response = await fetch(`${BASE_URL}/api/waitBaby`, {
+      method: "GET",
+      signal: controller.signal,
+    });
+
+    if (!response.ok) throw new Error(response.statusText);
+    clearTimeout(timer);
+    const data = await response.json();
+    alert(data.message);
+  } catch (err) {}
+};
+

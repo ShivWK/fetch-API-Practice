@@ -25,7 +25,7 @@ const App = () => {
 
   return (
     <>
-      <h1 className="text-lg font-bold">
+      <h1 className="text-xl font-bold text-center">
         Form Handling in React by React Hook Form
       </h1>
       <form
